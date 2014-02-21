@@ -15,23 +15,39 @@ import core.sys.windows.dll;
 
 import wkBindKeys.key_hook;
 
+///
+immutable string configFileName = "wxBindKeys.ini";
+
 extern (Windows)
 BOOL DllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved)
 {
     __gshared HINSTANCE g_hInst;
+    __gshared bool hasHooked;
 
     switch (ulReason)
     {
         case DLL_PROCESS_ATTACH:
+        {
             g_hInst = hInstance;
             dll_process_attach(hInstance, true);
-            hookKeyboard(g_hInst);
+
+            if (readConfigFile(configFileName))
+            {
+                hookKeyboard(g_hInst);
+                hasHooked = true;
+            }
+
             break;
+        }
 
         case DLL_PROCESS_DETACH:
-            unhookKeyboard();
+        {
+            if (hasHooked)
+                unhookKeyboard();
+
             dll_process_detach(hInstance, true);
             break;
+        }
 
         case DLL_THREAD_ATTACH:
             dll_thread_attach(true, true);

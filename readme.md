@@ -11,4 +11,3 @@ considerably less input lag compared to using
 be replaced with an `ini` file reader, or something similar.
 
 Homepage: https://github.com/AndrejMitrovic/wkBindKeys
-
