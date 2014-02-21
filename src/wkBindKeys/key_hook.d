@@ -146,6 +146,14 @@ bool readConfigFile(string configFileName)
             return false;
         }
 
+        if (newKey in keyMap)
+        {
+            error("Duplicate key map \"%s\" found in line #%s:\n"
+                  "\"%s\"\n\nNo key bindings will be used."
+                  .format(left, lineNum, lineBuff));
+            return false;
+        }
+
         keyMap[newKey] = oldKey;
     }
 
@@ -204,19 +212,31 @@ LRESULT LowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
     // generate a new key event only if this key event was user-generated.
     if (!(kbs.flags & LLKHF_INJECTED))
     {
+        // todo: kbs.flags isn't handled below for targetKey
         // Alt == toggle key binding
-        if (kbs.flags & LLKHF_ALTDOWN)
+        //~ if (kbs.flags & LLKHF_ALTDOWN)
+            //~ useKeyMap ^= 1;
+
+        immutable bool isKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
+        Key sourceKey = cast(Key)kbs.vkCode;
+        Key targetKey = keyMap.get(sourceKey, sourceKey);
+
+        /// toggle the key binding
+        if (isKeyDown && targetKey == Key.Toggle)
+        {
             useKeyMap ^= 1;
+            return -1;
+        }
 
         if (!useKeyMap)
             return CallNextHookEx(keyHook_LL, code, wParam, lParam);
 
         INPUT input;
         input.type = INPUT_KEYBOARD;
-        input.ki.dwFlags = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) ? 0 : KEYEVENTF_KEYUP;
+        input.ki.dwFlags = isKeyDown ? 0 : KEYEVENTF_KEYUP;
 
-        // replace the key, must be in range 1 to 254
-        input.ki.wVk = keyMap.get(cast(Key)kbs.vkCode, cast(Key)kbs.vkCode);
+        // replace the key
+        input.ki.wVk = targetKey;
 
         SendInput(1, &input, INPUT.sizeof);
         return -1;
