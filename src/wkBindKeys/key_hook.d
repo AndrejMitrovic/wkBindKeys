@@ -21,8 +21,6 @@ import win32.winbase;
 import win32.windef;
 import win32.winuser;
 
-import madhook2;
-
 import wkBindKeys.key_codes;
 
 ///
@@ -104,7 +102,7 @@ bool readConfigFile(string configFileName)
         ++lineNum;
 
         auto line = lineBuff.strip();
-        if (line.empty)
+        if (line.empty || line.startsWith("#"))
             continue;
 
         auto vals = line.splitter("=");
