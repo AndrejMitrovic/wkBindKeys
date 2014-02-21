@@ -93,16 +93,27 @@ Key toKey(const(char)[] input)
         case "ctrl", "control":
             return Key.VK_CONTROL;
 
-        case "alt":   return Key.VK_MENU;
-        case "shift": return Key.VK_SHIFT;
-        case "space": return Key.VK_SPACE;
-        case "tab":   return Key.VK_TAB;
+        case "alt":    return Key.VK_MENU;
+        case "shift":  return Key.VK_SHIFT;
+        case "space":  return Key.VK_SPACE;
+        case "tab":    return Key.VK_TAB;
+        case "toggle": return Key.Toggle;
+        case "home":   return Key.VK_HOME;
+
+        case "`", "backtick", "back-tick":
+            return Key.VK_OEM_3;
 
         case "backspace", "back-space":
             return Key.VK_BACK;
 
         case "enter", "return":
             return Key.VK_RETURN;
+
+        case "+", "plus":
+            return Key.VK_OEM_PLUS;
+
+        case "-", "minus":
+            return Key.VK_OEM_MINUS;
 
         default: return Key.Invalid;
     }
@@ -115,6 +126,7 @@ Key toKey(const(char)[] input)
 enum Key : WORD
 {
     Invalid = 0x07,  // sentinel
+    Toggle = 0x0A,  // special
 
     VK_LBUTTON = 0x01,
     VK_RBUTTON,

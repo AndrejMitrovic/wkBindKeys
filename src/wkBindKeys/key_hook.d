@@ -98,7 +98,7 @@ bool readConfigFile(string configFileName)
     size_t lineNum;
     foreach (lineBuff; File(configPath, "r").byLine())
     {
-        void emitError() { error(`Invalid line #%s in config file:\n"%s"\n\nNo key bindings will be used.`
+        void emitError() { error("Invalid line #%s in config file:\n\"%s\"\n\nNo key bindings will be used."
                                  .format(lineNum, lineBuff)); }
 
         ++lineNum;
@@ -135,7 +135,15 @@ bool readConfigFile(string configFileName)
 
         if (newKey == Key.Invalid || oldKey == Key.Invalid)
         {
-            error(`Unrecognized key association in line #"%s":\n%s\n\nNo key bindings will be used.`
+            error("Unrecognized key association in line #%s:\n\"%s\"\n\nNo key bindings will be used."
+                  .format(lineNum, lineBuff));
+            return false;
+        }
+
+        if (newKey == Key.Toggle)
+        {
+            error("\"toggle\" can only appear on the right side of a key association."
+                  "In line #%s:\n\"%s\"\n\nNo key bindings will be used."
                   .format(lineNum, lineBuff));
             return false;
         }
