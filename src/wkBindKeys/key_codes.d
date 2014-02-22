@@ -6,14 +6,28 @@
  */
 module wkBindKeys.key_codes;
 
+import std.conv;
+import std.exception;
 import std.string;
 
 import win32.windef;
+
+import wkBindKeys.dialog;
 
 /** Parse a number of user representations of keys as a Key. */
 Key toKey(const(char)[] input)
 {
     auto data = input.toLower();
+
+    /** Support direct reference to a virtual key. */
+    if (data.startsWith("vk_"))
+    {
+        Key result;
+        if (collectException!ConvException(to!Key(input), result))
+            return Key.Invalid;
+
+        return result;
+    }
 
     switch (data)
     {
@@ -93,8 +107,30 @@ Key toKey(const(char)[] input)
         case "ctrl", "control":
             return Key.VK_CONTROL;
 
+        case "lctrl", "l-ctrl", "leftctrl", "left-ctrl",
+             "lcontrol", "l-control", "leftcontrol", "left-control":
+            return Key.VK_LCONTROL;
+
+        case "rctrl", "r-ctrl", "rightctrl", "right-ctrl",
+             "rcontrol", "r-control", "rightcontrol", "right-control":
+            return Key.VK_RCONTROL;
+
         case "alt":    return Key.VK_MENU;
+
+        case "lalt", "l-alt", "leftalt", "left-alt":
+            return Key.VK_LMENU;
+
+        case "ralt", "r-alt", "rightalt", "right-alt":
+            return Key.VK_RMENU;
+
         case "shift":  return Key.VK_SHIFT;
+
+        case "lshift", "l-shift", "leftshift", "left-shift":
+            return Key.VK_LSHIFT;
+
+        case "rshift", "r-shift", "rightshift", "right-shift":
+            return Key.VK_RSHIFT;
+
         case "space":  return Key.VK_SPACE;
         case "tab":    return Key.VK_TAB;
         case "toggle": return Key.Toggle;
@@ -320,5 +356,3 @@ enum Key : WORD
     VK_PA1,
     VK_OEM_CLEAR,
 }
-
-static assert(Key.VK_OEM_CLEAR == 0xFE);

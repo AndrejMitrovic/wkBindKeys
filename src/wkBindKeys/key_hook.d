@@ -21,6 +21,7 @@ import win32.winbase;
 import win32.windef;
 import win32.winuser;
 
+import wkBindKeys.dialog;
 import wkBindKeys.key_codes;
 
 ///
@@ -46,26 +47,6 @@ string getWAPath()
     string path = assumeUnique(waPath[0 .. strlen(waPath.ptr)]);
     enforce(path.exists());
     return path;
-}
-
-/** Spawn a dialog box with a warning message. */
-void warn(string msg)
-{
-    MessageBox(null, msg.toStringz, "wxBindKeys warning", MB_OK | MB_ICONWARNING);
-}
-
-/** Spawn a dialog box with an error message and throw an exception. */
-void error(string msg)
-{
-    MessageBox(null, msg.toStringz, "wxBindKeys error", MB_OK | MB_ICONERROR);
-}
-
-void errorEnforce(bool state, lazy string msg)
-{
-    if (state)
-        return;
-
-    error(msg);
 }
 
 /// Toggle-able
@@ -146,11 +127,73 @@ bool readConfigFile(string configFileName)
             return false;
         }
 
-        if (newKey in keyMap)
+        void diag(Key targetKey, const(char)[] keyName)
         {
-            error("Duplicate key map \"%s\" found in line #%s:\n"
+            error("\"%s\" is already mapped to \"%s\". Key binding in line #%s would override it:\n"
                   "\"%s\"\n\nNo key bindings will be used."
-                  .format(left, lineNum, lineBuff));
+                  .format(keyName, targetKey, lineNum, lineBuff));
+        }
+
+        // map CONTROL to: L_CONTROL and R_CONTROL.
+        if (newKey == Key.VK_CONTROL)
+        {
+            if (auto targetKey = Key.VK_LCONTROL in keyMap)
+            {
+                diag(*targetKey, "Left-control");
+                return false;
+            }
+
+            if (auto targetKey = Key.VK_RCONTROL in keyMap)
+            {
+                diag(*targetKey, "Right-control");
+                return false;
+            }
+
+            keyMap[Key.VK_LCONTROL] = oldKey;
+            keyMap[Key.VK_RCONTROL] = oldKey;
+        }
+
+        // map MENU to: L_MENU and R_MENU.
+        if (newKey == Key.VK_MENU)
+        {
+            if (auto targetKey = Key.VK_LMENU in keyMap)
+            {
+                diag(*targetKey, "Left-alt");
+                return false;
+            }
+
+            if (auto targetKey = Key.VK_RMENU in keyMap)
+            {
+                diag(*targetKey, "Right-alt");
+                return false;
+            }
+
+            keyMap[Key.VK_LMENU] = oldKey;
+            keyMap[Key.VK_RMENU] = oldKey;
+        }
+
+        // map SHIFT to: L_SHIFT and R_SHIFT.
+        if (newKey == Key.VK_SHIFT)
+        {
+            if (auto targetKey = Key.VK_LSHIFT in keyMap)
+            {
+                diag(*targetKey, "Left-shift");
+                return false;
+            }
+
+            if (auto targetKey = Key.VK_RSHIFT in keyMap)
+            {
+                diag(*targetKey, "Right-shift");
+                return false;
+            }
+
+            keyMap[Key.VK_LSHIFT] = oldKey;
+            keyMap[Key.VK_RSHIFT] = oldKey;
+        }
+
+        if (auto targetKey = newKey in keyMap)
+        {
+            diag(*targetKey, left);
             return false;
         }
 
@@ -212,11 +255,6 @@ LRESULT LowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
     // generate a new key event only if this key event was user-generated.
     if (!(kbs.flags & LLKHF_INJECTED))
     {
-        // todo: kbs.flags isn't handled below for targetKey
-        // Alt == toggle key binding
-        //~ if (kbs.flags & LLKHF_ALTDOWN)
-            //~ useKeyMap ^= 1;
-
         immutable bool isKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
         Key sourceKey = cast(Key)kbs.vkCode;
         Key targetKey = keyMap.get(sourceKey, sourceKey);

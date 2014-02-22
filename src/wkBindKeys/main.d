@@ -16,7 +16,7 @@ import core.sys.windows.dll;
 import wkBindKeys.key_hook;
 
 ///
-immutable string configFileName = "wxBindKeys.ini";
+immutable string configFileName = "wkBindKeys.ini";
 
 extern (Windows)
 BOOL DllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved)
