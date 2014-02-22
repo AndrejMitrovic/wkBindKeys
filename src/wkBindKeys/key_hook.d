@@ -38,14 +38,11 @@ void unhookKeyboard()
     UnhookWindowsHookEx(keyHook_LL);
 }
 
-/// Toggle-able
+/// Toggle-able key bindings.
 __gshared bool useKeyMap;
 
-/// See the key table here:
-/// http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
-/// or in win32.winuser
-/// todo: remove hardcoding
-Key[Key] keyMap;
+///
+__gshared Key[Key] keyMap;
 
 /// Status codes for reading the config file.
 enum Status

@@ -6,10 +6,6 @@
  */
 module wkBindKeys.main;
 
-/**
-    Typical minimal DLL main entry point.
-*/
-
 import core.sys.windows.windows;
 import core.sys.windows.dll;
 
@@ -30,6 +26,7 @@ BOOL DllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved) nothrow
     return ThrowWrapper!myDllMain(hInstance, ulReason, pvReserved);
 }
 
+///
 BOOL myDllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved)
 {
     switch (ulReason)

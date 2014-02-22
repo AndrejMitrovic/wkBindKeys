@@ -16,7 +16,7 @@ void warn(string msg)
     MessageBox(null, msg.toStringz, "wxBindKeys warning", MB_OK | MB_ICONWARNING);
 }
 
-/** Spawn a dialog box with an error message and throw an exception. */
+/** Spawn a dialog box with an error message. */
 void error(string msg)
 {
     MessageBox(null, msg.toStringz, "wxBindKeys error", MB_OK | MB_ICONERROR);

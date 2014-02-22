@@ -162,7 +162,7 @@ Key toKey(const(char)[] input)
 enum Key : WORD
 {
     Invalid = 0x07,  // sentinel
-    Toggle = 0x0A,  // special
+    Toggle = 0x0A,   // special toggle key
 
     VK_LBUTTON = 0x01,
     VK_RBUTTON,
