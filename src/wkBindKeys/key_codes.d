@@ -107,28 +107,28 @@ Key toKey(const(char)[] input)
         case "ctrl", "control":
             return Key.VK_CONTROL;
 
-        case "lctrl", "l-ctrl", "leftctrl", "left-ctrl",
-             "lcontrol", "l-control", "leftcontrol", "left-control":
+        case "lctrl", "l-ctrl", "l_ctrl", "leftctrl", "left-ctrl", "left_ctrl",
+             "lcontrol", "l-control", "l_control", "leftcontrol", "left-control", "left_control":
             return Key.VK_LCONTROL;
 
-        case "rctrl", "r-ctrl", "rightctrl", "right-ctrl",
-             "rcontrol", "r-control", "rightcontrol", "right-control":
+        case "rctrl", "r-ctrl", "r_ctrl", "rightctrl", "right-ctrl", "right_ctrl",
+             "rcontrol", "r-control", "r_control", "rightcontrol", "right-control", "right_control":
             return Key.VK_RCONTROL;
 
         case "alt":    return Key.VK_MENU;
 
-        case "lalt", "l-alt", "leftalt", "left-alt":
+        case "lalt", "l-alt", "l_alt", "leftalt", "left-alt", "left_alt":
             return Key.VK_LMENU;
 
-        case "ralt", "r-alt", "rightalt", "right-alt":
+        case "ralt", "r-alt", "r_alt", "rightalt", "right-alt", "right_alt":
             return Key.VK_RMENU;
 
         case "shift":  return Key.VK_SHIFT;
 
-        case "lshift", "l-shift", "leftshift", "left-shift":
+        case "lshift", "l-shift", "l_shift", "leftshift", "left-shift", "left_shift":
             return Key.VK_LSHIFT;
 
-        case "rshift", "r-shift", "rightshift", "right-shift":
+        case "rshift", "r-shift", "r_shift", "rightshift", "right-shift", "right_shift":
             return Key.VK_RSHIFT;
 
         case "space":  return Key.VK_SPACE;
@@ -136,10 +136,10 @@ Key toKey(const(char)[] input)
         case "toggle": return Key.Toggle;
         case "home":   return Key.VK_HOME;
 
-        case "`", "backtick", "back-tick":
+        case "`", "backtick", "back-tick", "back_tick":
             return Key.VK_OEM_3;
 
-        case "backspace", "back-space":
+        case "backspace", "back-space", "back_space":
             return Key.VK_BACK;
 
         case "enter", "return":
