@@ -23,6 +23,7 @@ import win32.winuser;
 
 import wkBindKeys.dialog;
 import wkBindKeys.key_codes;
+import wkBindKeys.wa_utils;
 
 ///
 __gshared HHOOK keyHook_LL;
@@ -35,18 +36,6 @@ void hookKeyboard(HINSTANCE modHandle)
 void unhookKeyboard()
 {
     UnhookWindowsHookEx(keyHook_LL);
-}
-
-/** Get the path to $(B WA.exe) and verify it exists. */
-string getWAPath()
-{
-    enum MAX_PATH = 4096;
-    char[MAX_PATH] waPath;
-    GetModuleFileName(null, waPath.ptr, MAX_PATH);
-
-    string path = assumeUnique(waPath[0 .. strlen(waPath.ptr)]);
-    enforce(path.exists());
-    return path;
 }
 
 /// Toggle-able
@@ -70,15 +59,12 @@ enum Status
     Read the configuration file configFileName.
     Return true if config file exists, is well-formed, and was read properly.
 */
-Status readConfigFile(string configFileName)
+Status readConfigFile(string configPath)
 {
-    auto waDir = getWAPath().dirName();
-    auto configPath = waDir.buildPath(configFileName);
-
     if (!configPath.exists)
     {
-        warn("Config file '%s' not found in '%s'. \n\nNo key bindings will be used."
-             .format(configFileName, waDir));
+        warn("Config file '%s' not found. \n\nNo key bindings will be used."
+             .format(configPath));
         return Status.missing_file;
     }
 

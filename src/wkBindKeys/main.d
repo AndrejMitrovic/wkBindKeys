@@ -13,50 +13,38 @@ module wkBindKeys.main;
 import core.sys.windows.windows;
 import core.sys.windows.dll;
 
-import wkBindKeys.key_hook;
+import std.exception;
+import std.path;
+import std.string;
 
 import win32.winbase;
 
-///
-immutable string configFileName = "wkBindKeys.ini";
+import wkBindKeys.dialog;
+import wkBindKeys.key_hook;
+import wkBindKeys.wa_utils;
 
+/** Main entry point. */
 extern (Windows)
-BOOL DllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved)
+BOOL DllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved) nothrow
 {
-    __gshared HINSTANCE g_hInst;
-    __gshared bool hasHooked;
+    return ThrowWrapper!myDllMain(hInstance, ulReason, pvReserved);
+}
 
+BOOL myDllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved)
+{
     switch (ulReason)
     {
         case DLL_PROCESS_ATTACH:
         {
             g_hInst = hInstance;
             dll_process_attach(hInstance, true);
-
-            auto status = readConfigFile(configFileName);
-            final switch (status) with (Status)
-            {
-                case ok:
-                    hookKeyboard(g_hInst);
-                    hasHooked = true;
-                    break;
-
-                case error:
-                    ExitProcess(1);
-                    break;
-
-                case missing_file:
-                    break;
-            }
-
+            initialize();
             break;
         }
 
         case DLL_PROCESS_DETACH:
         {
-            if (hasHooked)
-                unhookKeyboard();
-
+            uninitialize();
             dll_process_detach(hInstance, true);
             break;
         }
@@ -74,4 +62,48 @@ BOOL DllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved)
     }
 
     return true;
+}
+
+///
+immutable string configFileName = "wkBindKeys.ini";
+
+///
+__gshared private HINSTANCE g_hInst;
+
+///
+__gshared private bool hasHooked;
+
+/**
+    Main initialization routine.
+    Attempt to read the wkBindKeys config file,
+    if read properly set up the low-level keyboard hook.
+*/
+void initialize()
+{
+    auto waDir = getWAPath().dirName();
+    auto configPath = waDir.buildPath(configFileName);
+
+    Status status = readConfigFile(configPath);
+
+    final switch (status) with (Status)
+    {
+        case ok:
+            hookKeyboard(g_hInst);
+            hasHooked = true;
+            break;
+
+        case error:
+            ExitProcess(1);
+            break;
+
+        case missing_file:
+            break;
+    }
+}
+
+/** Cleanup routine. */
+void uninitialize()
+{
+    if (hasHooked)
+        unhookKeyboard();
 }
