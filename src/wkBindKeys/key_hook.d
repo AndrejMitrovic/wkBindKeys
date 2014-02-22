@@ -58,11 +58,19 @@ __gshared bool useKeyMap;
 /// todo: remove hardcoding
 Key[Key] keyMap;
 
+/// Status codes for reading the config file.
+enum Status
+{
+    ok,           /// config file was read ok, bindings active.
+    error,        /// error in readign the config file, exit WA.
+    missing_file, /// config file missing, bindings inactive, continue loading WA.
+}
+
 /**
     Read the configuration file configFileName.
     Return true if config file exists, is well-formed, and was read properly.
 */
-bool readConfigFile(string configFileName)
+Status readConfigFile(string configFileName)
 {
     auto waDir = getWAPath().dirName();
     auto configPath = waDir.buildPath(configFileName);
@@ -71,13 +79,13 @@ bool readConfigFile(string configFileName)
     {
         warn("Config file '%s' not found in '%s'. \n\nNo key bindings will be used."
              .format(configFileName, waDir));
-        return false;
+        return Status.missing_file;
     }
 
     size_t lineNum;
     foreach (lineBuff; File(configPath, "r").byLine())
     {
-        void emitError() { error("Invalid line #%s in config file:\n\"%s\"\n\nNo key bindings will be used."
+        void emitError() { error("Invalid line #%s in config file:\n\"%s\"\n\nWorms Armageddon will now exit."
                                  .format(lineNum, lineBuff)); }
 
         ++lineNum;
@@ -90,7 +98,7 @@ bool readConfigFile(string configFileName)
         if (vals.empty)
         {
             emitError();
-            return false;
+            return Status.error;
         }
 
         auto left = vals.front.strip;
@@ -98,7 +106,7 @@ bool readConfigFile(string configFileName)
         if (vals.empty)
         {
             emitError();
-            return false;
+            return Status.error;
         }
 
         auto right = vals.front.strip;
@@ -106,7 +114,7 @@ bool readConfigFile(string configFileName)
         if (!vals.empty)
         {
             emitError();
-            return false;
+            return Status.error;
         }
 
         Key newKey = left.toKey();
@@ -114,23 +122,23 @@ bool readConfigFile(string configFileName)
 
         if (newKey == Key.Invalid || oldKey == Key.Invalid)
         {
-            error("Unrecognized key association in line #%s:\n\"%s\"\n\nNo key bindings will be used."
+            error("Unrecognized key association in line #%s:\n\"%s\"\n\nWorms Armageddon will now exit."
                   .format(lineNum, lineBuff));
-            return false;
+            return Status.error;
         }
 
         if (newKey == Key.Toggle)
         {
             error("\"toggle\" can only appear on the right side of a key association."
-                  "In line #%s:\n\"%s\"\n\nNo key bindings will be used."
+                  "In line #%s:\n\"%s\"\n\nWorms Armageddon will now exit."
                   .format(lineNum, lineBuff));
-            return false;
+            return Status.error;
         }
 
         void diag(Key targetKey, const(char)[] keyName)
         {
             error("\"%s\" is already mapped to \"%s\". Key binding in line #%s would override it:\n"
-                  "\"%s\"\n\nNo key bindings will be used."
+                  "\"%s\"\n\nWorms Armageddon will now exit."
                   .format(keyName, targetKey, lineNum, lineBuff));
         }
 
@@ -140,13 +148,13 @@ bool readConfigFile(string configFileName)
             if (auto targetKey = Key.VK_LCONTROL in keyMap)
             {
                 diag(*targetKey, "Left-control");
-                return false;
+                return Status.error;
             }
 
             if (auto targetKey = Key.VK_RCONTROL in keyMap)
             {
                 diag(*targetKey, "Right-control");
-                return false;
+                return Status.error;
             }
 
             keyMap[Key.VK_LCONTROL] = oldKey;
@@ -159,13 +167,13 @@ bool readConfigFile(string configFileName)
             if (auto targetKey = Key.VK_LMENU in keyMap)
             {
                 diag(*targetKey, "Left-alt");
-                return false;
+                return Status.error;
             }
 
             if (auto targetKey = Key.VK_RMENU in keyMap)
             {
                 diag(*targetKey, "Right-alt");
-                return false;
+                return Status.error;
             }
 
             keyMap[Key.VK_LMENU] = oldKey;
@@ -178,13 +186,13 @@ bool readConfigFile(string configFileName)
             if (auto targetKey = Key.VK_LSHIFT in keyMap)
             {
                 diag(*targetKey, "Left-shift");
-                return false;
+                return Status.error;
             }
 
             if (auto targetKey = Key.VK_RSHIFT in keyMap)
             {
                 diag(*targetKey, "Right-shift");
-                return false;
+                return Status.error;
             }
 
             keyMap[Key.VK_LSHIFT] = oldKey;
@@ -194,57 +202,13 @@ bool readConfigFile(string configFileName)
         if (auto targetKey = newKey in keyMap)
         {
             diag(*targetKey, left);
-            return false;
+            return Status.error;
         }
 
         keyMap[newKey] = oldKey;
     }
 
-    return true;
-
-    //~ debug=1
-    //~ extern=extern "C" __attribute__((dllexport))
-    //~ values=foo,bar,doo
-    //~ ints=1,2,3
-    //~ compiler=dmd
-    //~ intSetSingle=1
-    //~ intSetMultiple=1,2,3
-    //~ input_language=c++
-    //~ private_value=zero
-
-    //~ enum VK_D = 0x44;
-
-    //~ keyMap =
-    //~ [
-        //~ VK_D : VK_SPACE,
-        //~ 65   : 13,
-        //~ 83   : 222,
-        //~ 81   : 222,
-        //~ 87   : 119,
-        //~ 69   : 112,
-        //~ 74   : 37,
-        //~ 75   : 40,
-        //~ 76   : 39,
-        //~ 73   : 38,
-        //~ 85   : 8,
-        //~ 48   : 121,
-        //~ 49   : 122,
-        //~ 50   : 113,
-        //~ 51   : 114,
-        //~ 52   : 115,
-        //~ 53   : 116,
-        //~ 54   : 117,
-        //~ 55   : 118,
-        //~ 56   : 119,
-        //~ 57   : 120,
-        //~ 90   : 49,
-        //~ 88   : 50,
-        //~ 67   : 51,
-        //~ 86   : 52,
-        //~ 66   : 53,
-        //~ 17   : 187,
-        //~ 18   : 189,
-    //~ ];
+    return Status.ok;
 }
 
 extern(Windows)

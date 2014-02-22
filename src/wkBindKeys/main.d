@@ -15,6 +15,8 @@ import core.sys.windows.dll;
 
 import wkBindKeys.key_hook;
 
+import win32.winbase;
+
 ///
 immutable string configFileName = "wkBindKeys.ini";
 
@@ -31,10 +33,20 @@ BOOL DllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved)
             g_hInst = hInstance;
             dll_process_attach(hInstance, true);
 
-            if (readConfigFile(configFileName))
+            auto status = readConfigFile(configFileName);
+            final switch (status) with (Status)
             {
-                hookKeyboard(g_hInst);
-                hasHooked = true;
+                case ok:
+                    hookKeyboard(g_hInst);
+                    hasHooked = true;
+                    break;
+
+                case error:
+                    ExitProcess(1);
+                    break;
+
+                case missing_file:
+                    break;
             }
 
             break;
