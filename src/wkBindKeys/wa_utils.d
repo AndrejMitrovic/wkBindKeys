@@ -31,11 +31,10 @@ string getWAPath()
 /**
     Taken from wkColorFix - original code by Vladimir Panteleev.
 
-    $(B Note:) Currently unused, this method should be used only
-    sparingly since it's very slow. Do not use it in a keyboard
-    procedure, especially not in a a low-level keyboard hook
-    which has an upper limit on the time it can spend processing
-    a key event.
+    $(B Note:) This method should be used only sparingly since
+    it's very slow. Do not use it in a keyboard procedure,
+    especially not in a a low-level keyboard hook which has an
+    upper limit on the time it can spend processing a key event.
 
     See the remarks section for the $(B LowLevelKeyboardProc) function:
     http://msdn.microsoft.com/en-us/library/windows/desktop/ms644985%28v=vs.85%29.aspx

@@ -31,6 +31,9 @@ import madhook2;
 __gshared HHOOK keyHook_LL;
 
 ///
+__gshared extern(Windows) BOOL function(HWND) SetForegroundWindowNext;
+
+///
 __gshared extern(Windows) BOOL function(HWND, int) ShowWindowNext;
 
 ///
@@ -41,6 +44,8 @@ void hookKeyboard(HINSTANCE modHandle)
     // todo: add checking code back in again.
     keyHook_LL = enforce(SetWindowsHookExA(WH_KEYBOARD_LL, &LowLevelKeyboardProc, cast(HINSTANCE)null, 0));
 
+    // WA version older than v3.7.1.1 used $(CODE SetForegroundWindow(GetDesktopWindow()))
+    HookAPI("user32.dll", "SetForegroundWindow", cast(void*)&onSetForegroundWindow, cast(void**)&SetForegroundWindowNext);
     HookAPI("user32.dll", "ShowWindow", cast(void*)&onShowWindow, cast(void**)&ShowWindowNext);
     HookAPI("user32.dll", "ShowWindowAsync", cast(void*)&onShowWindowAsync, cast(void**)&ShowWindowAsyncNext);
 }
@@ -48,6 +53,7 @@ void hookKeyboard(HINSTANCE modHandle)
 void unhookKeyboard()
 {
     UnhookWindowsHookEx(keyHook_LL);
+    UnhookAPI(cast(void**)&SetForegroundWindowNext);
     UnhookAPI(cast(void**)&ShowWindowAsyncNext);
     UnhookAPI(cast(void**)&ShowWindowNext);
 }
@@ -210,6 +216,21 @@ Status readConfigFile(string configPath)
 
 ///
 __gshared bool isWAActive = false;
+
+extern (Windows)
+BOOL onSetForegroundWindow(HWND hwnd)
+{
+    // desktop is about to be shown, W:A becomes inactive.
+    if (hwnd == GetDesktopWindow())
+        isWAActive = false;
+
+    DWORD pid;
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == GetCurrentProcessId())
+        isWAActive = true;
+
+    return SetForegroundWindowNext(hwnd);
+}
 
 ///
 extern (Windows)
