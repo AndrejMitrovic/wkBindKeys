@@ -25,17 +25,31 @@ import wkBindKeys.dialog;
 import wkBindKeys.key_codes;
 import wkBindKeys.wa_utils;
 
+import madhook2;
+
 ///
 __gshared HHOOK keyHook_LL;
 
+///
+__gshared extern(Windows) BOOL function(HWND, int) ShowWindowNext;
+
+///
+__gshared extern(Windows) BOOL function(HWND, int) ShowWindowAsyncNext;
+
 void hookKeyboard(HINSTANCE modHandle)
 {
+    // todo: add checking code back in again.
     keyHook_LL = enforce(SetWindowsHookExA(WH_KEYBOARD_LL, &LowLevelKeyboardProc, cast(HINSTANCE)null, 0));
+
+    HookAPI("user32.dll", "ShowWindow", cast(void*)&onShowWindow, cast(void**)&ShowWindowNext);
+    HookAPI("user32.dll", "ShowWindowAsync", cast(void*)&onShowWindowAsync, cast(void**)&ShowWindowAsyncNext);
 }
 
 void unhookKeyboard()
 {
     UnhookWindowsHookEx(keyHook_LL);
+    UnhookAPI(cast(void**)&ShowWindowAsyncNext);
+    UnhookAPI(cast(void**)&ShowWindowNext);
 }
 
 /// Toggle-able key bindings.
@@ -194,23 +208,36 @@ Status readConfigFile(string configPath)
     return Status.ok;
 }
 
-/** Taken from wkColorFix - original code by Vladimir Panteleev. */
-bool isWAActive()
+///
+__gshared bool isWAActive = false;
+
+///
+extern (Windows)
+BOOL onShowWindow(HWND hwnd, int sw)
 {
-    auto fgWinHandle = GetForegroundWindow();
-    DWORD pid;
-    GetWindowThreadProcessId(fgWinHandle, &pid);
+    onShowWindowImpl(sw);
+    return ShowWindowNext(hwnd, sw);
+}
 
-    if (pid != GetCurrentProcessId())
-        return false;
+extern (Windows)
+BOOL onShowWindowAsync(HWND hwnd, int sw)
+{
+    onShowWindowImpl(sw);
+    return ShowWindowAsyncNext(hwnd, sw);
+}
 
-    RECT rect;
-    GetWindowRect(fgWinHandle, &rect);
+private void onShowWindowImpl(int sw)
+{
+    // todo: to capture state of SW_SHOWDEFAULT we need to hook into CreateProcess.
 
-    if (rect.top != 0 || rect.left != 0)
-        return false;
-
-    return true;
+    if (sw == SW_FORCEMINIMIZE ||
+        sw == SW_HIDE ||
+        sw == SW_MINIMIZE ||
+        sw == SW_SHOWMINIMIZED ||
+        sw == SW_SHOWMINNOACTIVE)
+        isWAActive = false;
+    else
+        isWAActive = true;
 }
 
 extern(Windows)
@@ -220,7 +247,7 @@ LRESULT LowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 
     // generate a new key event only if this key event was user-generated,
     // and if WA is active (the LL keyboard hook can only be global).
-    if (isWAActive() && !(kbs.flags & LLKHF_INJECTED))
+    if (isWAActive && !(kbs.flags & LLKHF_INJECTED))
     {
         immutable bool isKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
         Key sourceKey = cast(Key)kbs.vkCode;
