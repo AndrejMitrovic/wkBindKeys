@@ -31,31 +31,31 @@ import madhook2;
 __gshared HHOOK keyHook_LL;
 
 ///
-__gshared extern(Windows) BOOL function(HWND) SetForegroundWindowNext;
+__gshared extern(Windows) BOOL function(HWND) setForegroundWindowNext;
 
 ///
-__gshared extern(Windows) BOOL function(HWND, int) ShowWindowNext;
+__gshared extern(Windows) BOOL function(HWND, int) showWindowNext;
 
 ///
-__gshared extern(Windows) BOOL function(HWND, int) ShowWindowAsyncNext;
+__gshared extern(Windows) BOOL function(HWND, int) showWindowAsyncNext;
 
 void hookKeyboard(HINSTANCE modHandle)
 {
     // todo: add checking code back in again.
-    keyHook_LL = enforce(SetWindowsHookExA(WH_KEYBOARD_LL, &LowLevelKeyboardProc, cast(HINSTANCE)null, 0));
+    keyHook_LL = enforce(SetWindowsHookExA(WH_KEYBOARD_LL, &lowLevelKeyboardProc, cast(HINSTANCE)null, 0));
 
     // WA version older than v3.7.1.1 used $(CODE SetForegroundWindow(GetDesktopWindow()))
-    HookAPI("user32.dll", "SetForegroundWindow", cast(void*)&onSetForegroundWindow, cast(void**)&SetForegroundWindowNext);
-    HookAPI("user32.dll", "ShowWindow", cast(void*)&onShowWindow, cast(void**)&ShowWindowNext);
-    HookAPI("user32.dll", "ShowWindowAsync", cast(void*)&onShowWindowAsync, cast(void**)&ShowWindowAsyncNext);
+    HookAPI("user32.dll", "SetForegroundWindow", cast(void*)&onSetForegroundWindow, cast(void**)&setForegroundWindowNext);
+    HookAPI("user32.dll", "ShowWindow", cast(void*)&onShowWindow, cast(void**)&showWindowNext);
+    HookAPI("user32.dll", "ShowWindowAsync", cast(void*)&onShowWindowAsync, cast(void**)&showWindowAsyncNext);
 }
 
 void unhookKeyboard()
 {
     UnhookWindowsHookEx(keyHook_LL);
-    UnhookAPI(cast(void**)&SetForegroundWindowNext);
-    UnhookAPI(cast(void**)&ShowWindowAsyncNext);
-    UnhookAPI(cast(void**)&ShowWindowNext);
+    UnhookAPI(cast(void**)&setForegroundWindowNext);
+    UnhookAPI(cast(void**)&showWindowAsyncNext);
+    UnhookAPI(cast(void**)&showWindowNext);
 }
 
 /// Toggle-able key bindings.
@@ -229,7 +229,7 @@ BOOL onSetForegroundWindow(HWND hwnd)
     if (pid == GetCurrentProcessId())
         isWAActive = true;
 
-    return SetForegroundWindowNext(hwnd);
+    return setForegroundWindowNext(hwnd);
 }
 
 ///
@@ -237,14 +237,14 @@ extern (Windows)
 BOOL onShowWindow(HWND hwnd, int sw)
 {
     onShowWindowImpl(sw);
-    return ShowWindowNext(hwnd, sw);
+    return showWindowNext(hwnd, sw);
 }
 
 extern (Windows)
 BOOL onShowWindowAsync(HWND hwnd, int sw)
 {
     onShowWindowImpl(sw);
-    return ShowWindowAsyncNext(hwnd, sw);
+    return showWindowAsyncNext(hwnd, sw);
 }
 
 private void onShowWindowImpl(int sw)
@@ -262,7 +262,7 @@ private void onShowWindowImpl(int sw)
 }
 
 extern(Windows)
-LRESULT LowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
+LRESULT lowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 {
     auto kbs = cast(KBDLLHOOKSTRUCT*)lParam;
 
