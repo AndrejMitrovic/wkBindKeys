@@ -13,6 +13,8 @@ import std.file;
 import std.traits;
 
 import win32.winbase;
+import win32.windef;
+import win32.winuser;
 
 /** Get the path to $(B WA.exe) and verify it exists. */
 string getWAPath()
@@ -24,6 +26,41 @@ string getWAPath()
     string path = assumeUnique(waPath[0 .. strlen(waPath.ptr)]);
     enforce(path.exists());
     return path;
+}
+
+/**
+    Taken from wkColorFix - original code by Vladimir Panteleev.
+
+    $(B Note:) Currently unused, this method should be used only
+    sparingly since it's very slow. Do not use it in a keyboard
+    procedure, especially not in a a low-level keyboard hook
+    which has an upper limit on the time it can spend processing
+    a key event.
+
+    See the remarks section for the $(B LowLevelKeyboardProc) function:
+    http://msdn.microsoft.com/en-us/library/windows/desktop/ms644985%28v=vs.85%29.aspx
+
+    A more reliable and faster workaround is to hook into
+    $(B ShowWindow) and $(B ShowWindowAsync) functions,
+    and store the last known active state of the WA window,
+    which you can then check in a tight loop.
+*/
+bool isWAWindowActive()
+{
+    auto fgWinHandle = GetForegroundWindow();
+    DWORD pid;
+    GetWindowThreadProcessId(fgWinHandle, &pid);
+
+    if (pid != GetCurrentProcessId())
+        return false;
+
+    RECT rect;
+    GetWindowRect(fgWinHandle, &rect);
+
+    if (rect.top != 0 || rect.left != 0)
+        return false;
+
+    return true;
 }
 
 /**
