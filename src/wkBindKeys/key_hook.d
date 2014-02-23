@@ -194,13 +194,33 @@ Status readConfigFile(string configPath)
     return Status.ok;
 }
 
+/** Taken from wkColorFix - original code by Vladimir Panteleev. */
+bool isWAActive()
+{
+    auto fgWinHandle = GetForegroundWindow();
+    DWORD pid;
+    GetWindowThreadProcessId(fgWinHandle, &pid);
+
+    if (pid != GetCurrentProcessId())
+        return false;
+
+    RECT rect;
+    GetWindowRect(fgWinHandle, &rect);
+
+    if (rect.top != 0 || rect.left != 0)
+        return false;
+
+    return true;
+}
+
 extern(Windows)
 LRESULT LowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 {
     auto kbs = cast(KBDLLHOOKSTRUCT*)lParam;
 
-    // generate a new key event only if this key event was user-generated.
-    if (!(kbs.flags & LLKHF_INJECTED))
+    // generate a new key event only if this key event was user-generated,
+    // and if WA is active (the LL keyboard hook can only be global).
+    if (isWAActive() && !(kbs.flags & LLKHF_INJECTED))
     {
         immutable bool isKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
         Key sourceKey = cast(Key)kbs.vkCode;
