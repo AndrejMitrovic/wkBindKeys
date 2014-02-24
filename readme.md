@@ -9,6 +9,12 @@ considerably less input lag compared to using
 
 Homepage: https://github.com/AndrejMitrovic/wkBindKeys
 
+## Download
+
+If you want to download a pre-built release, see the [releases] page.
+
+[releases]: https://github.com/AndrejMitrovic/wkBindKeys/releases
+
 ## License
 
 Distributed under the Boost Software License, Version 1.0.
