@@ -15,6 +15,7 @@ import std.string;
 
 import win32.winbase;
 
+import wkBindKeys.config_parser;
 import wkBindKeys.dialog;
 import wkBindKeys.key_hook;
 import wkBindKeys.wa_utils;
@@ -80,7 +81,7 @@ void initialize()
     auto waDir = getWAPath().dirName();
     auto configPath = waDir.buildPath(configFileName);
 
-    Status status = readConfigFile(configPath);
+    Status status = readConfigFile(configPath, keyMap);
 
     final switch (status) with (Status)
     {
