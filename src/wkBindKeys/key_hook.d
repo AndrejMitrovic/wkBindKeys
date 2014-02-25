@@ -16,6 +16,7 @@ import std.path;
 import std.range;
 import std.stdio;
 import std.string;
+import std.traits;
 
 import win32.winbase;
 import win32.windef;
@@ -62,7 +63,7 @@ void unhookKeyboard()
 __gshared bool useKeyMap;
 
 ///
-__gshared Key[Key] keyMap;
+__gshared KeyArr keyArr;
 
 ///
 __gshared bool isWAActive = false;
@@ -121,8 +122,8 @@ LRESULT lowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
     if (isWAActive && !(kbs.flags & LLKHF_INJECTED))
     {
         immutable bool isKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
-        Key sourceKey = cast(Key)kbs.vkCode;
-        Key targetKey = keyMap.get(sourceKey, sourceKey);
+        auto keyIndex = cast(OriginalType!Key)kbs.vkCode;
+        Key targetKey = keyArr[keyIndex];
 
         /// toggle the key binding
         if (isKeyDown && targetKey == Key.Toggle)

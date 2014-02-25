@@ -9,10 +9,25 @@ module wkBindKeys.key_codes;
 import std.conv;
 import std.exception;
 import std.string;
+import std.traits;
 
 import win32.windef;
 
 import wkBindKeys.dialog;
+
+///
+alias KeyArr = Key[OriginalType!Key.max];
+
+/// Get a default-initialized key array.
+KeyArr getInitKeyArr()
+{
+    KeyArr result;
+
+    foreach (i; 0 .. OriginalType!Key.max)
+        result[i] = cast(Key)i;  // default values
+
+    return result;
+}
 
 /** Parse a number of user representations of keys as a Key. */
 Key toKey(const(char)[] input)

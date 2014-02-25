@@ -10,6 +10,7 @@ import std.file;
 import std.stdio;
 import std.string;
 import std.range;
+import std.traits;
 
 import wkBindKeys.dialog;
 import wkBindKeys.key_codes;
@@ -26,13 +27,24 @@ enum Status
     Read the configuration file configFileName and populate the keyMap.
     Return true if config file exists, is well-formed, and was read properly.
 */
-Status readConfigFile(string configPath, ref Key[Key] keyMap)
+Status readConfigFile(string configPath, ref KeyArr keyArr)
 {
+    keyArr = getInitKeyArr();
+
     if (!configPath.exists)
     {
         warn("Config file '%s' not found. \n\nNo key bindings will be used."
              .format(configPath));
         return Status.missing_file;
+    }
+
+    Key[Key] keyMap;  // temp key map for diagnostics
+
+    /// store to both the temp key map and the key array.
+    void storeKey(Key source, Key target)
+    {
+        keyMap[source] = target;
+        keyArr[cast(OriginalType!Key)source] = target;
     }
 
     size_t lineNum;
@@ -70,17 +82,17 @@ Status readConfigFile(string configPath, ref Key[Key] keyMap)
             return Status.error;
         }
 
-        Key newKey = left.toKey();
-        Key oldKey = right.toKey();
+        Key srcKey = left.toKey();
+        Key tgtKey = right.toKey();
 
-        if (newKey == Key.Invalid || oldKey == Key.Invalid)
+        if (srcKey == Key.Invalid || tgtKey == Key.Invalid)
         {
             error("Unrecognized key association in line #%s:\n\"%s\"\n\nWorms Armageddon will now exit."
                   .format(lineNum, lineBuff));
             return Status.error;
         }
 
-        if (newKey == Key.Toggle)
+        if (srcKey == Key.Toggle)
         {
             error("\"toggle\" can only appear on the right side of a key association."
                   "In line #%s:\n\"%s\"\n\nWorms Armageddon will now exit."
@@ -96,7 +108,7 @@ Status readConfigFile(string configPath, ref Key[Key] keyMap)
         }
 
         // map CONTROL to: L_CONTROL and R_CONTROL.
-        if (newKey == Key.VK_CONTROL)
+        if (srcKey == Key.VK_CONTROL)
         {
             if (auto targetKey = Key.VK_LCONTROL in keyMap)
             {
@@ -110,12 +122,12 @@ Status readConfigFile(string configPath, ref Key[Key] keyMap)
                 return Status.error;
             }
 
-            keyMap[Key.VK_LCONTROL] = oldKey;
-            keyMap[Key.VK_RCONTROL] = oldKey;
+            storeKey(Key.VK_LCONTROL, tgtKey);
+            storeKey(Key.VK_RCONTROL, tgtKey);
         }
 
         // map MENU to: L_MENU and R_MENU.
-        if (newKey == Key.VK_MENU)
+        if (srcKey == Key.VK_MENU)
         {
             if (auto targetKey = Key.VK_LMENU in keyMap)
             {
@@ -129,12 +141,12 @@ Status readConfigFile(string configPath, ref Key[Key] keyMap)
                 return Status.error;
             }
 
-            keyMap[Key.VK_LMENU] = oldKey;
-            keyMap[Key.VK_RMENU] = oldKey;
+            storeKey(Key.VK_LMENU, tgtKey);
+            storeKey(Key.VK_RMENU, tgtKey);
         }
 
         // map SHIFT to: L_SHIFT and R_SHIFT.
-        if (newKey == Key.VK_SHIFT)
+        if (srcKey == Key.VK_SHIFT)
         {
             if (auto targetKey = Key.VK_LSHIFT in keyMap)
             {
@@ -148,17 +160,17 @@ Status readConfigFile(string configPath, ref Key[Key] keyMap)
                 return Status.error;
             }
 
-            keyMap[Key.VK_LSHIFT] = oldKey;
-            keyMap[Key.VK_RSHIFT] = oldKey;
+            storeKey(Key.VK_LSHIFT, tgtKey);
+            storeKey(Key.VK_RSHIFT, tgtKey);
         }
 
-        if (auto targetKey = newKey in keyMap)
+        if (auto targetKey = srcKey in keyMap)
         {
             diag(*targetKey, left);
             return Status.error;
         }
 
-        keyMap[newKey] = oldKey;
+        storeKey(srcKey, tgtKey);
     }
 
     return Status.ok;
