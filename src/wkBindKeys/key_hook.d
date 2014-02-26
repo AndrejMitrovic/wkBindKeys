@@ -63,7 +63,7 @@ void unhookKeyboard()
 __gshared bool useKeyMap;
 
 ///
-__gshared KeyArr keyArr;
+__gshared KeyMap keyMap;
 
 ///
 __gshared bool isWAActive = false;
@@ -123,7 +123,7 @@ LRESULT lowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
     {
         immutable bool isKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
         auto keyIndex = cast(OriginalType!Key)kbs.vkCode;
-        Key targetKey = keyArr[keyIndex];
+        Key targetKey = keyMap.keyArr[keyIndex];
 
         /// toggle the key binding
         if (isKeyDown && targetKey == Key.Toggle)
@@ -141,6 +141,9 @@ LRESULT lowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 
         // replace the key
         input.ki.wVk = targetKey;
+
+        // replace the scan code
+        input.ki.wScan = keyMap.scanCodeArr[keyIndex];
 
         SendInput(1, &input, INPUT.sizeof);
         return -1;

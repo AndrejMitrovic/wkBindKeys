@@ -81,7 +81,7 @@ void initialize()
     auto waDir = getWAPath().dirName();
     auto configPath = waDir.buildPath(configFileName);
 
-    Status status = readConfigFile(configPath, keyArr);
+    Status status = readConfigFile(configPath, keyMap);
 
     final switch (status) with (Status)
     {
