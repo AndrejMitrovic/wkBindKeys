@@ -6,6 +6,7 @@
  */
 module wkBindKeys.dialog;
 
+import std.algorithm;
 import std.string;
 
 import win32.winuser;
@@ -13,11 +14,22 @@ import win32.winuser;
 /** Spawn a dialog box with a warning message. */
 void warn(string msg)
 {
-    MessageBox(null, msg.toStringz, "wxBindKeys warning", MB_OK | MB_ICONWARNING);
+    MessageBox(null, msg.trimForDialog.toStringz,
+               "wxBindKeys warning", MB_OK | MB_ICONWARNING);
 }
 
 /** Spawn a dialog box with an error message. */
 void error(string msg)
 {
-    MessageBox(null, msg.toStringz, "wxBindKeys error", MB_OK | MB_ICONERROR);
+    MessageBox(null, msg.trimForDialog.toStringz,
+               "wxBindKeys error", MB_OK | MB_ICONERROR);
+}
+
+/**
+    MessageBox seems to be extremely slow with
+    displaying text longer than 10K characters.
+*/
+private string trimForDialog(string input)
+{
+    return input[0 .. min(10_000, input.length)];
 }

@@ -27,9 +27,9 @@ enum Status
     Read the configuration file configFileName and populate the keyMap.
     Return true if config file exists, is well-formed, and was read properly.
 */
-Status readConfigFile(string configPath, ref KeyArr keyArr)
+Status readConfigFile(string configPath, ref KeyMap keyMap)
 {
-    keyArr = getInitKeyArr();
+    keyMap = getInitKeyMap();
 
     if (!configPath.exists)
     {
@@ -38,13 +38,18 @@ Status readConfigFile(string configPath, ref KeyArr keyArr)
         return Status.missing_file;
     }
 
-    Key[Key] keyMap;  // temp key map for diagnostics
+    Key[Key] tempKeyMap;  // temp key map for diagnostics
 
-    /// store to both the temp key map and the key array.
+    /// store to both the temp key map and the actual key map.
     void storeKey(Key source, Key target)
     {
-        keyMap[source] = target;
-        keyArr[cast(OriginalType!Key)source] = target;
+        alias KeyBase = OriginalType!Key;
+
+        tempKeyMap[source] = target;
+        keyMap.keyArr[cast(KeyBase)source] = target;
+
+        auto tgtScanCode = keyMap.defaultScanCodeArr[cast(KeyBase)target];
+        keyMap.scanCodeArr[cast(KeyBase)source] = tgtScanCode;
     }
 
     size_t lineNum;
@@ -110,13 +115,13 @@ Status readConfigFile(string configPath, ref KeyArr keyArr)
         // map CONTROL to: L_CONTROL and R_CONTROL.
         if (srcKey == Key.VK_CONTROL)
         {
-            if (auto targetKey = Key.VK_LCONTROL in keyMap)
+            if (auto targetKey = Key.VK_LCONTROL in tempKeyMap)
             {
                 diag(*targetKey, "Left-control");
                 return Status.error;
             }
 
-            if (auto targetKey = Key.VK_RCONTROL in keyMap)
+            if (auto targetKey = Key.VK_RCONTROL in tempKeyMap)
             {
                 diag(*targetKey, "Right-control");
                 return Status.error;
@@ -129,13 +134,13 @@ Status readConfigFile(string configPath, ref KeyArr keyArr)
         // map MENU to: L_MENU and R_MENU.
         if (srcKey == Key.VK_MENU)
         {
-            if (auto targetKey = Key.VK_LMENU in keyMap)
+            if (auto targetKey = Key.VK_LMENU in tempKeyMap)
             {
                 diag(*targetKey, "Left-alt");
                 return Status.error;
             }
 
-            if (auto targetKey = Key.VK_RMENU in keyMap)
+            if (auto targetKey = Key.VK_RMENU in tempKeyMap)
             {
                 diag(*targetKey, "Right-alt");
                 return Status.error;
@@ -148,13 +153,13 @@ Status readConfigFile(string configPath, ref KeyArr keyArr)
         // map SHIFT to: L_SHIFT and R_SHIFT.
         if (srcKey == Key.VK_SHIFT)
         {
-            if (auto targetKey = Key.VK_LSHIFT in keyMap)
+            if (auto targetKey = Key.VK_LSHIFT in tempKeyMap)
             {
                 diag(*targetKey, "Left-shift");
                 return Status.error;
             }
 
-            if (auto targetKey = Key.VK_RSHIFT in keyMap)
+            if (auto targetKey = Key.VK_RSHIFT in tempKeyMap)
             {
                 diag(*targetKey, "Right-shift");
                 return Status.error;
@@ -164,7 +169,7 @@ Status readConfigFile(string configPath, ref KeyArr keyArr)
             storeKey(Key.VK_RSHIFT, tgtKey);
         }
 
-        if (auto targetKey = srcKey in keyMap)
+        if (auto targetKey = srcKey in tempKeyMap)
         {
             diag(*targetKey, left);
             return Status.error;

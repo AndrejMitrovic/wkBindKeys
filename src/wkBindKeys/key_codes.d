@@ -12,19 +12,52 @@ import std.string;
 import std.traits;
 
 import win32.windef;
+import win32.winuser;
 
 import wkBindKeys.dialog;
 
-///
-alias KeyArr = Key[OriginalType!Key.max];
-
-/// Get a default-initialized key array.
-KeyArr getInitKeyArr()
+struct KeyMap
 {
-    KeyArr result;
+    ///
+    alias KeyArr = Key[OriginalType!Key.max];
+
+    ///
+    alias ScanCodeArr = WORD[OriginalType!Key.max];
+
+    ///
+    KeyArr keyArr;
+
+    ///
+    ScanCodeArr scanCodeArr;
+
+    ///
+    ScanCodeArr defaultScanCodeArr;  // should be const
+}
+
+/// Missing from WinAPI, see:
+/// http://msdn.microsoft.com/en-us/library/windows/desktop/ms646306%28v=vs.85%29.aspx
+enum : UINT
+{
+    MAPVK_VK_TO_CHAR = 2,
+    MAPVK_VK_TO_VSC = 0,
+    MAPVK_VSC_TO_VK = 1,
+    MAPVK_VSC_TO_VK_EX = 3,
+}
+
+/// Get a default-initialized key map.
+KeyMap getInitKeyMap()
+{
+    typeof(return) result;
 
     foreach (i; 0 .. OriginalType!Key.max)
-        result[i] = cast(Key)i;  // default values
+    {
+        result.keyArr[i] = cast(Key)i;
+
+        // cast is ok - MapVirtualKey has a multi-purpose return type.
+        result.scanCodeArr[i] = cast(WORD)MapVirtualKey(i, MAPVK_VK_TO_VSC);
+    }
+
+    result.defaultScanCodeArr = result.scanCodeArr[];
 
     return result;
 }
