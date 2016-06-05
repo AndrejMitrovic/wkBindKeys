@@ -15,6 +15,8 @@ import std.string;
 
 import win32.winbase;
 
+alias ExitProcess = win32.winbase.ExitProcess;
+
 import wkBindKeys.config_parser;
 import wkBindKeys.dialog;
 import wkBindKeys.key_hook;

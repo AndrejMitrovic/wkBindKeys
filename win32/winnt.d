@@ -2143,14 +2143,14 @@ version (X86) {
 	const INITIAL_MXCSR = 0x1f80;
 	const INITIAL_FPCSR = 0x027f;
 
-	align(16) struct M128A 
+	align(16) struct M128A
 	{
 		ULONGLONG Low;
 		LONGLONG High;
-	} 
+	}
 	alias M128A* PM128A;
 
-	struct XMM_SAVE_AREA32 
+	struct XMM_SAVE_AREA32
 	{
 		WORD ControlWord;
 		WORD StatusWord;
@@ -2165,13 +2165,13 @@ version (X86) {
 		WORD Reserved3;
 		DWORD MxCsr;
 		DWORD MxCsr_Mask;
-		M128A FloatRegisters[8];
-		M128A XmmRegisters[16];
-		BYTE Reserved4[96];
-	} 
+		M128A[8] FloatRegisters;
+		M128A[16] XmmRegisters;
+		BYTE[96] Reserved4;
+	}
 	alias XMM_SAVE_AREA32 PXMM_SAVE_AREA32;
 	const LEGACY_SAVE_AREA_LENGTH = XMM_SAVE_AREA32.sizeof;
-	
+
 	align(16) struct CONTEXT
 	{
 		DWORD64 P1Home;
@@ -2212,14 +2212,14 @@ version (X86) {
 		DWORD64 R14;
 		DWORD64 R15;
 		DWORD64 Rip;
-		union 
+		union
 		{
 			XMM_SAVE_AREA32 FltSave;
 			XMM_SAVE_AREA32 FloatSave;
-			struct 
+			struct
 			{
-				M128A Header[2];
-				M128A Legacy[8];
+				M128A[2] Header;
+				M128A[8] Legacy;
 				M128A Xmm0;
 				M128A Xmm1;
 				M128A Xmm2;
@@ -2238,7 +2238,7 @@ version (X86) {
 				M128A Xmm15;
 			};
 		};
-		M128A VectorRegister[26];
+		M128A[26] VectorRegister;
 		DWORD64 VectorControl;
 		DWORD64 DebugControl;
 		DWORD64 LastBranchToRip;
@@ -2246,7 +2246,7 @@ version (X86) {
 		DWORD64 LastExceptionToRip;
 		DWORD64 LastExceptionFromRip;
 	}
-	
+
 } else {
 	static assert(false, "Unsupported CPU");
 	// Versions for PowerPC, Alpha, SHX, and MIPS removed.
