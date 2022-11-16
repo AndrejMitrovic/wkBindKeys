@@ -19,10 +19,6 @@ You can find these files on the [releases] page.
 
 You will also need `madCHook.dll`. You can find it as part of the [WormNat2](https://worms2d.info/WormNAT2) package.
 
-## Download
-
-If you want to download a pre-built release, see the [releases] page.
-
 [releases]: https://github.com/AndrejMitrovic/wkBindKeys/releases
 
 ## License
