@@ -9,6 +9,15 @@ considerably less input lag compared to using
 
 Homepage: https://github.com/AndrejMitrovic/wkBindKeys
 
+## Installation
+
+Install the `wkBindKeys.dll` and `wkBindKeys.ini` files into your `WormsArmageddon` folder.
+For example it could be `C:\Program Files (x86)\Steam\steamapps\common\Worms Armageddon` if you're using Steam.
+
+You can find these files on the [releases] page.
+
+You will also need `madCHook.dll`. You can find it as part of the [WormNat2](https://worms2d.info/WormNAT2) package.
+
 ## Download
 
 If you want to download a pre-built release, see the [releases] page.
