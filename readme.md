@@ -21,6 +21,10 @@ You will also need `madCHook.dll`. You can find it as part of the [WormNat2](htt
 
 [releases]: https://github.com/AndrejMitrovic/wkBindKeys/releases
 
+## Usage
+
+See the wiki page: https://worms2d.info/WkBindKeys
+
 ## License
 
 Distributed under the Boost Software License, Version 1.0.
